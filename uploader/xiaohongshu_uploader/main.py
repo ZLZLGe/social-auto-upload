@@ -675,7 +675,9 @@ class XiaoHongShuVideo(XiaoHongShuBaseUploader):
 
         # await self.set_location(page, "青岛市")
 
-        await self.check_original_declaration(page)
+        # 只有显式提供来源时才声明「来源转载」；否则不要默认打成转载（空来源会降权）
+        if getattr(self, "repost_source", ""):
+            await self.check_original_declaration(page)
 
         if self.publish_strategy == XIAOHONGSHU_PUBLISH_STRATEGY_SCHEDULED and self.publish_date != 0:
             await self.set_schedule_time_xiaohongshu(page, self.publish_date)
@@ -798,7 +800,9 @@ class XiaoHongShuNote(XiaoHongShuBaseUploader):
         xiaohongshu_logger.info(_msg("✍️", "小人开始填标题、描述和话题"))
         await self.fill_meta(page)
 
-        await self.check_original_declaration(page)
+        # 只有显式提供来源时才声明「来源转载」；否则不要默认打成转载（空来源会降权）
+        if getattr(self, "repost_source", ""):
+            await self.check_original_declaration(page)
 
         if self.publish_strategy == XIAOHONGSHU_PUBLISH_STRATEGY_SCHEDULED and self.publish_date != 0:
             await self.set_schedule_time_xiaohongshu(page, self.publish_date)

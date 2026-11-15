@@ -375,8 +375,8 @@ class DouYinBaseUploader(BaseVideoUploader):
 
     async def fill_title_and_description(self, page: Page, title: str, description: str, tags: list[str] | None = None):
         # 2026-06 抖音发布页 DOM：标题=input[placeholder*=填写作品标题]，描述=div.zone-container[contenteditable]
-        # version_2(post/video) 发布页要等视频上传完才渲染表单（实测约 40s），故等待超时给到 120s
-        title_input = page.locator('input[placeholder*="填写作品标题"]').first
+        # 2026-10 图文发布页标题 placeholder 改为「添加作品标题」，这里兼容两种文案
+        title_input = page.locator('input[placeholder*="作品标题"]').first
         await title_input.wait_for(state="visible", timeout=120000)
         await title_input.fill(title[:30])
 
@@ -537,6 +537,15 @@ class DouYinBaseUploader(BaseVideoUploader):
             else:
                 await dialog.get_by_text(declaration, exact=True).first.click(timeout=6000, force=True)
             await page.wait_for_timeout(400)
+
+            # 「内容为转载信息」会展开「取材站内/取材站外」，转载外部内容选站外
+            source_option = dialog.locator("label.semi-radio").filter(has_text="取材站外").first
+            if await source_option.count():
+                try:
+                    await source_option.click(timeout=4000)
+                except Exception:
+                    await _native_click(page, source_option)
+                await page.wait_for_timeout(400)
 
             # 确定：footer 的 primary 按钮
             confirm_btn = dialog.locator("button.semi-button-primary").filter(has_text="确定").first
@@ -789,6 +798,9 @@ class DouYinVideo(DouYinBaseUploader):
             self.thumbnail_portrait_path = str(self.validate_image_file(self.thumbnail_portrait_path))
 
     async def handle_upload_error(self, page):
+        self._upload_fail_count = getattr(self, "_upload_fail_count", 0) + 1
+        if self._upload_fail_count > 1:
+            raise RuntimeError(f"视频上传连续失败 {self._upload_fail_count} 次，放弃本次发布")
         douyin_logger.warning(_msg("😵", "视频上传摔了一跤，小人马上重新上传"))
         await page.locator('div.progress-div [class^="upload-btn-input"]').set_input_files(self.file_path)
 
@@ -977,10 +989,28 @@ class DouYinVideo(DouYinBaseUploader):
         context = await browser.new_context(
             storage_state=f"{self.account_file}",
             permissions=["geolocation"],
+            bypass_csp=True,
         )
         context = await set_init_script(context)
 
         page = await context.new_page()
+
+        def _log_resp_bad(res):
+            try:
+                if res.status >= 400:
+                    douyin_logger.warning(_msg("🌐", f"HTTP {res.status}: {res.url}"))
+                if "create_v2" in res.url:
+                    async def _dump():
+                        try:
+                            body = await res.text()
+                            douyin_logger.warning(_msg("🌐", f"create_v2 {res.status}: {body[:600]}"))
+                        except Exception:
+                            pass
+                    asyncio.create_task(_dump())
+            except Exception:
+                pass
+
+        page.on("response", _log_resp_bad)
         await page.goto("https://creator.douyin.com/creator-micro/content/upload", wait_until="domcontentloaded", timeout=90000)
         douyin_logger.info(_msg("🏃", f"小人开始搬运视频: {self.title}.mp4"))
         douyin_logger.info(_msg("🧭", "小人正在赶往上传主页"))
@@ -1036,7 +1066,18 @@ class DouYinVideo(DouYinBaseUploader):
                 await asyncio.sleep(2)
                 if await page.locator('div.progress-div > div:has-text("上传失败")').count():
                     douyin_logger.error(_msg("😵", "检测到上传失败，小人准备重试"))
+                    try:
+                        fail_text = await page.locator("div.progress-div").first.inner_text()
+                        douyin_logger.error(_msg("🔎", f"上传区提示: {fail_text}"))
+                    except Exception:
+                        pass
+                    try:
+                        await page.screenshot(path=os.path.join(BASE_DIR, "media", "douyin-upload-fail.png"))
+                    except Exception:
+                        pass
                     await self.handle_upload_error(page)
+            except RuntimeError:
+                raise
             except Exception:
                 douyin_logger.debug(_msg("🧍", "小人还在等视频上传完成"))
                 await asyncio.sleep(2)
@@ -1098,7 +1139,7 @@ class DouYinVideo(DouYinBaseUploader):
                     await publish_button.click(force=True)
                 await page.wait_for_url(
                     "https://creator.douyin.com/creator-micro/content/manage**",
-                    timeout=3000,
+                    timeout=15000,
                 )
                 douyin_logger.success(_msg("🥳", "视频发布成功，小人开心收工"))
                 break

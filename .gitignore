@@ -195,3 +195,9 @@ videoFile
 
 # 本地个人使用的浏览器自动化开发 Skill，不随开源仓库发布
 /skills/browser-automation-dev/
+
+# 本地发布内容、登录二维码与调试产物，不随 fork 发布
+/content/
+/qrcode.png
+/media/douyin-upload-fail.png
+/tools/
