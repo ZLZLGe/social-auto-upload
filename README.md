@@ -14,53 +14,6 @@ CLI 命令按平台维护在 `sau_commands/`，发布流程位于 `uploader/`。
 
 <img src="media/show/tkupload.gif" alt="tiktok show" width="800"/>
 
-## 💎 赞助商
-
-<table width="100%">
- <tr>
-    <td width="25%" align="center" valign="middle">
-      <a href="https://chilltion.com/?ref=1y5k5k">
-        <img src="static/DolOffer.png" alt="DolOffer Sponsor" width="180">
-      </a>
-    </td>
-    <td width="75%" align="left" valign="middle">
-      感谢 <a href="https://doloffer.com/" target="_blank">DolOffer</a> 对本项目的支持！对于做内容矩阵、多平台分发和 AI 自动化运营的创作者来说，ChatGPT、Claude、YouTube Premium、Spotify、Apple Music、Notion、Office 等数字工具往往是长期成本。DolOffer 提供 AI、视频、音乐和效率工具相关的订阅与充值服务，帮助用户更低成本地配置常用数字产品。更多说明可查看 <a href="https://github.com/Doloffer-g/guide" target="_blank">DolOffer Guide</a>。使用优惠码 <code>AI8888</code> 可额外享受 9 折优惠，具体价格和服务规则以官网为准。  
-    </td>
-  </tr>
-  <tr>
-    <td width="25%" align="center" valign="middle">
-      <a href="https://chilltion.com/?ref=1y5k5k">
-        <img src="static/chilltion.png" alt="chilltion Sponsor" width="180">
-      </a>
-    </td>
-    <td width="75%" align="left" valign="middle">
-      轻视AI：一句话生产MG动画，适合知识，科普，讲解，教程，介绍等类型视频的低成本制作，视频矩阵，养号等，成本只有seedance等1%。现在<a href="https://chilltion.com/?ref=1y5k5k">注册</a>送1500积分
-    </td>
-  </tr>
-    <tr>
-        <td width="25%" align="center" valign="middle">
-          <a href="http://t.clawpower.vip/1005">
-            <img src="static/clawpower.png" alt="ClawPower Sponsor" width="180">
-          </a>
-        </td>
-        <td width="75%" align="left" valign="middle">
-          ClawPower 是一家稳定可靠 AI 大模型中转服务商，提供 Claude、GPT、Gemini 60+ 大模型接入。无论是 OpenClaw、Hermes 智能体自动化场景，Claude Code、Codex 编程工具接入，还是公众号、小红书内容创作；都能获得稳定、顺滑、可长期使用的模型服务体验。低至官方价格的 30%，点击<a href="http://t.clawpower.vip/1005">免费领取 5 刀现金</a>体验券
-        </td>
-      </tr>
-  <tr>
-    <td width="25%" align="center" valign="middle">
-      <img src="static/wechat.png" alt="Sponsor Contact" width="150">
-    </td>
-    <td width="75%" align="left" valign="middle">
-      <strong>成为赞助商</strong><br>
-      如果您有意赞助本项目，请扫描左侧微信二维码（添加时请注明来意：<strong>赞助</strong>）。
-    </td>
-  </tr>
-</table>
-
----
-
-
 ## 目录
 
 - [💡 功能特性](#功能特性)
@@ -69,7 +22,6 @@ CLI 命令按平台维护在 `sau_commands/`，发布流程位于 `uploader/`。
 - [🏁 快速开始](#快速开始)
 - [📝 更新日志](./CHANGELOG.md)
 - [📃 详细文档](#详细文档)
-- [🐾 交流与支持](#交流与支持)
 - [🤝 贡献指南](#贡献指南)
 - [📜 许可证](#许可证)
 - [⭐ Star History](#star-history)
@@ -284,42 +236,6 @@ sau dayu upload-article --account <account_name> --title "如何阅读作品数�
 ## 📃详细文档
 
 安装、更新和平台参数见仓库内对应文档：[安装说明](./docs/install.md)、[更新说明](./docs/update.md)、[CLI 使用说明](./docs/CLI.md)。产品介绍与社区信息见 [social-auto-upload 文档站](https://sap-doc.nasdaddy.com/)。
-
-## 🐾交流与支持
-
-[☕ Donate as u like](https://www.buymeacoffee.com/hysn2001m) - 如果您觉得这个项目对您有帮助，可以考虑赞助。
-
-如果您也是独立开发者、技术爱好者，对 #技术变现 #AI创业 #跨境电商 #自动化工具 #视频创作 等话题感兴趣，欢迎加入社群交流。
-
-### Creator
-
-<table>
-    <td align="center">
-        <a href="https://sap-doc.nasdaddy.com/">
-            <img src="media/mp.jpg" width="200px" alt="NasDaddy公众号"/>
-            <br />
-            <sub><b>微信公众号</b></sub>
-        </a>
-        <br />
-        <a href="https://github.com/dreammis/social-auto-upload/commits?author=dreammis" title="Code">💻</a>
-        <br />
-        关注公众号，后台回复 `上传` 获取加群方式
-    </td>
-    <td align="center">
-        <a href="https://sap-doc.nasdaddy.com/">
-            <img src="media/QR.png" width="200px" alt="赞赏码/入群引导"/>
-            <br />
-            <sub><b>交流群 (通过公众号获取)</b></sub>
-        </a>
-        <br />
-        <a href="https://sap-doc.nasdaddy.com/" title="Documentation">📖</a>
-        <br />
-        如果您觉得项目有用，可以考虑打赏支持一下
-    </td>
-</table>
-
-
-
 
 ## 🤝贡献指南
 
