@@ -3,6 +3,7 @@ from datetime import datetime
 
 import asyncio
 import inspect
+import json
 import os
 import sys
 from pathlib import Path
@@ -365,13 +366,52 @@ class DouYinBaseUploader(BaseVideoUploader):
         await label_element.click()
         await asyncio.sleep(1)
         publish_date_hour = publish_date.strftime("%Y-%m-%d %H:%M")
-
-        await asyncio.sleep(1)
-        await page.locator('.semi-input[placeholder="日期和时间"]').click()
+        input_el = page.locator('.semi-input[placeholder="日期和时间"]')
+        await input_el.click()
         await page.keyboard.press("Control+KeyA")
         await page.keyboard.type(str(publish_date_hour))
         await page.keyboard.press("Enter")
         await asyncio.sleep(1)
+
+        # 日期组件接受日期后会把时间重置成最早可选值，必须重新打开面板，
+        # 在时间列里精确选择时分，否则定时会被悄悄改到别的点。
+        await input_el.click()
+        await asyncio.sleep(0.8)
+        try:
+            switch_time = page.locator(".semi-datepicker-switch-time").first
+            if await switch_time.count():
+                await switch_time.click()
+                await asyncio.sleep(0.7)
+                time_lists = page.locator(".semi-datepicker-time ul")
+                if await time_lists.count() >= 2:
+                    hour_text = f"{publish_date.hour:02d}"
+                    minute_text = f"{publish_date.minute:02d}"
+                    hour_item = time_lists.nth(0).get_by_text(hour_text, exact=True).first
+                    await hour_item.scroll_into_view_if_needed()
+                    await hour_item.click(force=True)
+                    await asyncio.sleep(0.5)
+                    minute_item = time_lists.nth(1).get_by_text(minute_text, exact=True).first
+                    await minute_item.scroll_into_view_if_needed()
+                    await minute_item.click(force=True)
+                    await asyncio.sleep(0.5)
+        except Exception:
+            pass
+        await page.keyboard.press("Enter")
+        await asyncio.sleep(1)
+
+        try:
+            shown = await input_el.input_value()
+            douyin_logger.info(_msg("🕗", f"定时发布时间: {shown}"))
+            if publish_date_hour not in shown:
+                raise RuntimeError(f"定时时间设置失败: 期望 {publish_date_hour}, 实际 {shown}")
+        except RuntimeError:
+            raise
+        except Exception:
+            pass
+        try:
+            await page.screenshot(path=os.path.join(BASE_DIR, "media", "douyin-schedule.png"))
+        except Exception:
+            pass
 
     async def fill_title_and_description(self, page: Page, title: str, description: str, tags: list[str] | None = None):
         # 2026-06 抖音发布页 DOM：标题=input[placeholder*=填写作品标题]，描述=div.zone-container[contenteditable]
@@ -995,6 +1035,8 @@ class DouYinVideo(DouYinBaseUploader):
 
         page = await context.new_page()
 
+        create_result = {}
+
         def _log_resp_bad(res):
             try:
                 if res.status >= 400:
@@ -1003,6 +1045,7 @@ class DouYinVideo(DouYinBaseUploader):
                     async def _dump():
                         try:
                             body = await res.text()
+                            create_result["body"] = body
                             douyin_logger.warning(_msg("🌐", f"create_v2 {res.status}: {body[:600]}"))
                         except Exception:
                             pass
@@ -1135,8 +1178,20 @@ class DouYinVideo(DouYinBaseUploader):
 
                 # ── 正常发布流程 ──
                 publish_button = page.get_by_role("button", name="发布", exact=True)
+                if not await publish_button.count():
+                    publish_button = page.get_by_role("button", name="定时发布", exact=True)
                 if await publish_button.count():
+                    create_result.clear()
                     await publish_button.click(force=True)
+                await page.wait_for_timeout(4000)
+                if create_result.get("body"):
+                    try:
+                        data = json.loads(create_result["body"])
+                        if data.get("status_code") == 0:
+                            douyin_logger.success(_msg("🥳", "发布请求已提交，小人开心收工"))
+                            break
+                    except Exception:
+                        pass
                 await page.wait_for_url(
                     "https://creator.douyin.com/creator-micro/content/manage**",
                     timeout=15000,
